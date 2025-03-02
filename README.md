@@ -4,8 +4,12 @@
 
 Vous aurez besoin de NodeJS pour lancer cette application sur votre ordinateur.
 - https://nodejs.org/fr/download
+
+
 Il faudra télécharger l'application Expo Go pour afficher cette application sur votre téléphone portable.
 - https://expo.dev/go
+
+  
 Et finalement il faut créer un compte et installer ngrok - vous pouvez choisir votre système d'exploitation et suivre les étapes dans ce lien :
 - https://dashboard.ngrok.com/get-started/setup/windows
 
@@ -30,5 +34,4 @@ Avant de lancer l'application React Native, il faut avoir le lien pour l'API, do
    ```bash
     npx expo start --tunnel
    ```
-
-Vous allez recevoir un code QR dans le texte qui s'affiche après cette commande. Scannez-le et ouvrez avec l'application Expo Go
+   - Vous allez recevoir un code QR dans le texte qui s'affiche après cette commande. Scannez-le et ouvrez avec l'application Expo Go
