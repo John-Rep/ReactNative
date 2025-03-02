@@ -1,165 +1,121 @@
-import { Image, StyleSheet, Platform, FlatList, Text, Alert, Pressable, StatusBar } from 'react-native';
-import { useState, useEffect, FC } from 'react';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { useNavigation } from 'expo-router';
+import { useState } from 'react';
+import { Alert, Pressable, StatusBar, StyleSheet, Text, TextInput } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-const refURI = "https://aaa9-37-165-122-230.ngrok-free.app/api";
 
-type bookProps = {
-  title: string,
-  author: string,
-  description: string,
-  year: number,
-  cover: string,
-}
-
-type Book = {
-  id: string;
-  title: string;
-  author: string;
-  description: string;
-  year: number;
-  cover: string;
-};
-
-const BookTag: FC<bookProps> = ({title, author, description, year, cover}) => (
-  <ThemedView style={styles.bookContainer}>
-    <Image source={{ uri: cover }} style={styles.cover}/>
-    <ThemedView style={styles.bookInfo}>
-      <Text style={styles.bookTitle}>{title}</Text>
-      <Text style={styles.bookAuthor}>By {author} {year ? 'in ' + year : ''}</Text>
-      <Text style={styles.bookDescription}>{description ? description : 'No description available'}</Text>
-    </ThemedView>
-    <Pressable style={styles.bookAddButton} onPress={() => Alert.alert("Text here")}>
-      <Text>See More</Text>
-    </Pressable>
-  </ThemedView>
-);
+export const refURI = "https://d627-2a02-8428-26d-3701-713e-e839-1d68-d7e0.ngrok-free.app";
 
 export default function HomeScreen() {
-  const [data, setData] = useState<Book[]>([]);
 
-  const getMovies = async () => {
+  const [title, setTitle] = useState('');
+  const [author, setAuthor] = useState('');
+  const [description, setDescription] = useState('');
+  const [year, setYear] = useState('');
+  const [cover, setCover] = useState('');
+
+  const options = {
+      method: 'POST',
+      headers: {
+          'accept': 'application/ld+json',
+          'Content-Type': 'application/ld+json',
+      },
+      body: JSON.stringify({
+          "title": title,
+          "author": author,
+          "description": description ? description : null,
+          "year": year ? parseInt(year) : null,
+          "cover": cover ? cover : "https://i.pinimg.com/originals/0d/76/f2/0d76f2d3429cb61b53c8d1e48df327f6.jpg"
+      })
+  };
+
+  const PostBook = async () => {
     try {
-      const response = await fetch(refURI + '/books');
-      const json = await response.json();
-      setData(json.member);
+        
+      await fetch(refURI + '/api/books', options)
+        .then((response) => {
+          if(response.status == 201) {
+            Alert.alert("Book Successfully Added");
+            setTitle('');
+            setAuthor('');
+            setDescription('');
+            setYear('');
+            setCover('');
+          } else {
+            Alert.alert("Book Addition Failed: " + response.status);
+          }
+        });
     } catch (error) {
       console.error(error);
     }
   };
 
-  useEffect(() => {
-    getMovies();
-  }, []);
-
   return (
-    <SafeAreaView style={styles.container}>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">📚 Library</ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Books:</ThemedText>
-        <FlatList
-          data={data}
-          horizontal={false}
-          keyExtractor={({id}) => id}
-          renderItem={({item}) => (
-              <BookTag title={item.title} author={item.author} description={item.description} year={item.year} cover={item.cover} />
-          )}
+    <SafeAreaView>
+      <ThemedText type="title" style={styles.titleContainer}>Add a New Book!</ThemedText>
+        <TextInput style={styles.bookInputField}
+          onChangeText={setTitle}
+          value={title}
+          placeholder="title"
         />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
+        <TextInput style={styles.bookInputField}
+          onChangeText={setAuthor}
+          value={author}
+          placeholder="author"
+        />
+        <TextInput style={styles.bookInputField}
+          onChangeText={setDescription}
+          value={description}
+          placeholder="description"
+        />
+        <TextInput style={styles.bookInputField}
+          onChangeText={setYear}
+          value={year}
+          placeholder="publication year"
+          keyboardType="numeric"
+        />
+        <TextInput style={styles.bookInputField}
+          onChangeText={setCover}
+          value={cover}
+          placeholder="add the url of a cover image online"
+        />
+      <Pressable style={styles.bookAddButton} onPress={() => {
+        if (author == '' || title == '') {
+          Alert.alert('Books must have a title and an author');
+        } else {
+          PostBook()
+        }
+      }
+    }>
+        <Text>Add New Book</Text>
+      </Pressable>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-    padding: 16,
-    marginTop: StatusBar.currentHeight || 0,
-  },
   titleContainer: {
     backgroundColor: '#f5f5f5',
-    flexDirection: 'row',
-    alignItems: 'center',
+    textAlign: 'center',
+    padding: 10,
     gap: 8,
   },
-  stepContainer: {
+  bookListContainer: {
     backgroundColor: '#f5f5f5',
-    height: "75%",
+    flex: 1,
     gap: 8,
     marginBottom: 8,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-  bookContainer: {
-    flexDirection: 'row',
-    backgroundColor: 'lightgrey',
-    borderRadius: 10,
+  bookInputField: {
+    fontSize: 16,
     padding: 10,
-    marginBottom: 10,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 3,
-  },
-  bookInfo: {
-    backgroundColor: 'lightgrey',
-    borderRadius: 10,
-    padding: 10,
-  },
-  bookTitle: {
-    paddingLeft: 5,
-    fontSize: 15,
-    fontWeight: 'bold',
-  },
-  bookAuthor: {
-    padding: 5,
-    fontSize: 10,
-  },
-  bookDescription: {
-    padding: 5,
-    fontSize: 14,
+    backgroundColor: 'lightgray',
+    marginHorizontal: 20,
+    marginVertical: 10,
   },
   bookAddButton: {
     padding: 10,
     backgroundColor: 'lightblue',
     margin: 'auto',
-  },
-  cover: {
-    width: 50,
-    height: 75,
-    borderRadius: 5,
-    marginRight: 10,
   },
 });
